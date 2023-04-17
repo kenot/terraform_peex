@@ -1,19 +1,9 @@
 provider "aws" {
-    region = "YOUR REGION"
+    region = "us-east-1"
 }
 
-resource "aws_instance" "tags-test" {
-    ami = "YOUR AMI"
-    instance_type = "t2.micro"
+#Provides Dynamo db module
+module "dynamodb-table_example_global-tables" {
+  source  = "terraform-aws-modules/dynamodb-table/aws//examples/global-tables"
+  version = "3.1.2"
 }
-
-# resource "aws_ebs_volume" "example" {
-#   availability_zone = "YOUR AZ"
-#   size              = 40
-# }
-
-# resource "aws_volume_attachment" "ebs_att" {
-#   device_name = "/dev/sdh"
-#   volume_id   = 
-#   instance_id = 
-# }
