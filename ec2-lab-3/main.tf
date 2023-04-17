@@ -110,6 +110,8 @@ resource "aws_autoscaling_group" "peex" {
   launch_configuration      = aws_launch_configuration.peex.name
 }
 
+
+#Provides launch configuration
 data "aws_ami" "amazon_linux" {
   most_recent = true
 }
