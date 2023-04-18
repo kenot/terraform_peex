@@ -130,3 +130,73 @@ resource "aws_db_parameter_group" "rds_para_grp" {
     value = "utf8"
   }
 }
+
+resource "aws_s3_bucket" "peex" {
+  bucket = "my-tf-peex-bucket"
+
+  tags = {
+    Name        = "Peex bucket"
+    Environment = "Dev"
+  }
+}
+
+resource "aws_s3_bucket_acl" "peex" {
+  bucket = aws_s3_bucket.peex.id
+  acl    = "aws-exec-read"
+}
+
+resource "aws_s3_bucket_versioning" "peex" {
+  bucket = aws_s3_bucket.peex.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "peex" {
+  bucket = aws_s3_bucket.peex.id
+
+  rule {
+    id = "log"
+
+    expiration {
+      days = 90
+    }
+
+    filter {
+      and {
+        prefix = "log/"
+
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
+    }
+
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+  }
+
+  rule {
+    id = "tmp"
+
+    filter {
+      prefix = "tmp/"
+    }
+
+    expiration {
+      date = "2023-06-13T00:00:00Z"
+    }
+
+    status = "Enabled"
+  }
+}
