@@ -101,3 +101,32 @@ resource "local_file" "key_local_file" {
     content     = tls_private_key.gen_tls_pk.private_key_pem
     filename    = var.key_file
 }
+
+resource "aws_db_instance" "rds_instance" {
+  identifier                = "${var.rds_instance_identifier}"
+  allocated_storage         = 5
+  engine                    = "mysql"
+  engine_version            = "5.6.35"
+  instance_class            = "db.t2.micro"
+  db_name                   = "${var.db_name}"
+  username                  = "${var.db_name}"
+  password                  = "${var.db_password}"
+  db_subnet_group_name      = "${aws_subnet.public_subnet.id}"
+  vpc_security_group_ids    = ["${aws_security_group.allow_tls.id}"]
+  skip_final_snapshot       = true
+  final_snapshot_identifier = "Ignore"
+}
+
+resource "aws_db_parameter_group" "rds_para_grp" {
+  name        = "rds-param-group"
+  description = "Parameter group for mysql5.6"
+  family      = "mysql5.6"
+  parameter {
+    name  = "character_set_server"
+    value = "utf8"
+  }
+  parameter {
+    name  = "character_set_client"
+    value = "utf8"
+  }
+}

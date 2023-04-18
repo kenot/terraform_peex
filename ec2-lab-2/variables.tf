@@ -24,3 +24,20 @@ variable "key_file" {
     type = string
     default = "my_aws_key.pem"
 }
+
+variable "rds_instance_identifier" {
+    type = string
+    default  = "terraform-mysql"
+}
+variable "db_name" {
+    type = string
+    default  = "terraform_test_db"
+}
+variable "db_password" {
+    type = string
+    default  = "Sat53ka@s123456"
+}
+variable "db_user" {
+    type = string
+    default  = "terraform"
+}
