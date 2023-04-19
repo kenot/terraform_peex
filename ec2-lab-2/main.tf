@@ -115,14 +115,14 @@ resource "aws_secretsmanager_secret_version" "peex" {
 # Provides private subnet 1 for the RDS
 resource "aws_subnet" "private-subnet1" {
 vpc_id = "${aws_vpc.main.id}"
-cidr_block = "192.168.0.0/24"
+cidr_block = "192.168.1.0/24"
 availability_zone = "us-east-1a"
 }
 
 # Provides private subnet 2 for the RDS
 resource "aws_subnet" "private-subnet2" {
 vpc_id = "${aws_vpc.main.id}"
-cidr_block = "192.168.0.0/24"
+cidr_block = "192.168.2.0/24"
 availability_zone = "us-east-1b"
 }
 
@@ -235,4 +235,15 @@ resource "aws_s3_bucket_lifecycle_configuration" "peex" {
 
     status = "Enabled"
   }
+}
+
+# Provides in-memory service
+resource "aws_elasticache_cluster" "peex" {
+  cluster_id           = "cluster-peex"
+  engine               = "redis"
+  node_type            = "cache.m4.large"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis3.2"
+  engine_version       = "3.2.10"
+  port                 = 6379
 }
