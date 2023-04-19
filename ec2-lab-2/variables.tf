@@ -34,8 +34,11 @@ variable "db_name" {
     default  = "terraform_test_db"
 }
 variable "db_password" {
-    type = string
-    default  = "Sat53ka@s123456"
+    default = {
+    key_1 = "Sat53ka@s123456"
+  }
+
+  type = map(string)
 }
 variable "db_user" {
     type = string

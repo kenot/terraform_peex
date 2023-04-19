@@ -102,6 +102,37 @@ resource "local_file" "key_local_file" {
     filename    = var.key_file
 }
 
+# Provides secrets manager to store the db_password
+resource "aws_secretsmanager_secret" "peex" {
+  name = "peex"
+}
+
+resource "aws_secretsmanager_secret_version" "peex" {
+  secret_id     = aws_secretsmanager_secret.peex.id
+  secret_string = jsonencode(var.db_password)
+}
+
+# Provides private subnet 1 for the RDS
+resource "aws_subnet" "private-subnet1" {
+vpc_id = "${aws_vpc.main.id}"
+cidr_block = "192.168.0.0/24"
+availability_zone = "us-east-1a"
+}
+
+# Provides private subnet 2 for the RDS
+resource "aws_subnet" "private-subnet2" {
+vpc_id = "${aws_vpc.main.id}"
+cidr_block = "192.168.0.0/24"
+availability_zone = "us-east-1b"
+}
+
+# Provides the DB subnet
+resource "aws_db_subnet_group" "db-subnet" {
+name = "db subnet group"
+subnet_ids = ["${aws_subnet.private-subnet1.id}", "${aws_subnet.private-subnet2.id}"] 
+}
+
+# Provides the RDS instance
 resource "aws_db_instance" "rds_instance" {
   identifier                = "${var.rds_instance_identifier}"
   allocated_storage         = 5
@@ -110,13 +141,14 @@ resource "aws_db_instance" "rds_instance" {
   instance_class            = "db.t2.micro"
   db_name                   = "${var.db_name}"
   username                  = "${var.db_name}"
-  password                  = "${var.db_password}"
-  db_subnet_group_name      = "${aws_subnet.public_subnet.id}"
+  password                  = "${aws_secretsmanager_secret.peex.id}"
+  db_subnet_group_name      = "${aws_db_subnet_group.db-subnet.id}"
   vpc_security_group_ids    = ["${aws_security_group.allow_tls.id}"]
   skip_final_snapshot       = true
   final_snapshot_identifier = "Ignore"
 }
 
+# Provides the RDS instance parameter group
 resource "aws_db_parameter_group" "rds_para_grp" {
   name        = "rds-param-group"
   description = "Parameter group for mysql5.6"
@@ -131,6 +163,7 @@ resource "aws_db_parameter_group" "rds_para_grp" {
   }
 }
 
+# Provides S3 bucket
 resource "aws_s3_bucket" "peex" {
   bucket = "my-tf-peex-bucket"
 
@@ -140,11 +173,13 @@ resource "aws_s3_bucket" "peex" {
   }
 }
 
+# Provides S3 bucket ACL
 resource "aws_s3_bucket_acl" "peex" {
   bucket = aws_s3_bucket.peex.id
   acl    = "aws-exec-read"
 }
 
+# Provides S3 bucket versioning to be enabled
 resource "aws_s3_bucket_versioning" "peex" {
   bucket = aws_s3_bucket.peex.id
   versioning_configuration {
@@ -152,6 +187,7 @@ resource "aws_s3_bucket_versioning" "peex" {
   }
 }
 
+# Provides S3 bucket archiving and backup
 resource "aws_s3_bucket_lifecycle_configuration" "peex" {
   bucket = aws_s3_bucket.peex.id
 
